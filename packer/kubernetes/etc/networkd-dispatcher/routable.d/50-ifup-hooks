@@ -1,0 +1,7 @@
+#!/bin/sh
+# Private network up hook: set the Kubelet's node IP
+
+set -e
+
+PRIVATE_IP=$(ip -f inet addr show enp0s8 |awk '/inet / {print $2}' |cut -d/ -f1)
+echo "KUBELET_EXTRA_ARGS=--node-ip=$PRIVATE_IP" > /etc/default/kubelet
