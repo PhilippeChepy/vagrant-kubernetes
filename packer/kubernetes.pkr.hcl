@@ -11,18 +11,13 @@ build {
     sources = ["source.vagrant.kubernetes"]
 
     provisioner "file" {
-        source = "kubernetes/etc/default/kubelet"
-        destination = "/tmp/etc_default_kubelet"
-    }
-
-    provisioner "file" {
         source = "kubernetes/etc/modprobe.d/kubernetes-blacklist.conf"
         destination = "/tmp/etc_modprobe.d_kubernetes-blacklist.conf"
     }
 
     provisioner "file" {
-        source = "kubernetes/etc/modules-load.d/cri-o.conf"
-        destination = "/tmp/etc_modules-load.d_cri-o.conf"
+        source = "kubernetes/etc/modules-load.d/containerd.conf"
+        destination = "/tmp/etc_modules-load.d_containerd.conf"
     }
 
     provisioner "file" {
@@ -57,22 +52,23 @@ build {
 
             # custom Kubernetes CRI & network configuration
             "sudo mv /tmp/etc_sysctl.d_99-kubernetes-cri.conf /etc/sysctl.d/99-kubernetes-cri.conf",
-            "sudo mv /tmp/etc_modules-load.d_cri-o.conf /etc/modules-load.d/cri-o.conf",
-            "sudo mv /tmp/etc_default_kubelet /etc/default/cri-o.conf",
+            "sudo mv /tmp/etc_modules-load.d_containerd.conf /etc/modules-load.d/containerd.conf",
             "sudo mv /tmp/etc_modprobe.d_kubernetes-blacklist.conf /etc/modprobe.d/kubernetes-blacklist.conf",
 
-            # install CRI-O (as a replacement for Docker)
-            "curl -s https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/Release.key | sudo apt-key add -",
-            "curl -s https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.20/xUbuntu_20.04/Release.key | sudo apt-key add -",
-            "sudo apt-add-repository \"deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04 /\"",
-            "sudo apt-add-repository \"deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.20/xUbuntu_20.04/ /\"",
+            # install containerd (as a replacement for Docker)
+            "curl -s https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -",
+            "sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"",
 
             "sudo apt-get update",
-            "sudo apt-get install -y cri-o cri-o-runc cri-tools cri-o-runc runc",
+            "sudo apt-get install -y containerd.io",
+            "sudo apt-mark hold containerd.io",
             
-            "sudo systemctl daemon-reload",
-            "sudo systemctl start crio",
-            "sudo systemctl enable crio",
+            # remove default containerd configuration
+            "sudo rm -r /etc/containerd/config.toml",
+            # prevent conflicts with (later) CNI installation
+            "sudo rm -f /etc/cni/net.d/*",
+            
+            "sudo systemctl restart containerd",
 
             # install Kubernetes and Kubeadm components
             "curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -",
@@ -80,6 +76,7 @@ build {
 
             "sudo apt-get update",
             "sudo apt-get install -y kubectl=1.20.2-00 kubeadm=1.20.2-00 kubelet=1.20.2-00",
+            "sudo apt-mark hold kubelet kubeadm kubectl",
 
             # preload Kubernetes container images
             "sudo kubeadm config images pull",
@@ -88,9 +85,6 @@ build {
             "wget -O /tmp/helm.tar.gz https://get.helm.sh/helm-v3.5.1-linux-amd64.tar.gz",
             "tar -xOvf /tmp/helm.tar.gz linux-amd64/helm > /tmp/helm",
             "sudo install /tmp/helm /usr/local/bin/helm",
-
-            # removed because of conflicts with (later) calico installation
-            "sudo rm -f /etc/cni/net.d/*"
         ]
     }
 }

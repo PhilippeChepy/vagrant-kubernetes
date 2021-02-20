@@ -18,5 +18,11 @@ make clean
 # Components
 
 - Kubernetes 1.20
-- CRI-O as container runtime (CRI)
+- containerd as container runtime (CRI plugin)
 - Cilium as CNI
+
+# Networking
+
+- VMs are in a shared network in the `10.80.0.0/16` subnet
+- Kubernetes Services are in the `10.96.0.0/12` subnet
+- Kubernetes Pods are in the `10.112.0.0/12` subnet
