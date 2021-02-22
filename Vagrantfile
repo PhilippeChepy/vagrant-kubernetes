@@ -8,7 +8,6 @@ INFLUX_IMAGE = "ubuntu/focal64"
 KUBEADM_TOKEN = "aaaaaa.aaaaaaaaaaaaaaaa"
 
 CONTROL_PLANE_PRIVATE_ADDRESS = "10.80.0.10"
-MONITORING_PRIVATE_ADDRESS = "10.80.0.10"
 
 # `$install_control_plane_script` is an helper script that install a kubeadm configuration
 # and calls kubeadm init. This script take the KUBEADM_TOKEN as argument.
@@ -44,7 +43,6 @@ sudo cp -i /etc/kubernetes/admin.conf /root/.kube/config
 sudo chown root:root /root/.kube/config
 
 sudo helm repo add cilium https://helm.cilium.io/
-sudo helm repo add fluent https://fluent.github.io/helm-charts
 
 sudo helm install cilium cilium/cilium --version 1.9.4 \
     --namespace kube-system \
@@ -53,8 +51,6 @@ sudo helm install cilium cilium/cilium --version 1.9.4 \
     --set k8sServicePort=6443 \
     --set ipam.operator.clusterPoolIPv4PodCIDR="10.112.0.0/12" \
     --set ipam.operator.clusterPoolIPv4MaskSize=24
-
-# helm upgrade -i -n kube-platform -f fluent-bit/values.yaml fluent-bit fluent/fluent-bit
 SCRIPT
 
 # `$install_worker_script` is an helper script that joins the control-plane from a worker node.
