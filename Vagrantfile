@@ -51,6 +51,19 @@ sudo helm install cilium cilium/cilium --version 1.9.4 \
     --set k8sServicePort=6443 \
     --set ipam.operator.clusterPoolIPv4PodCIDR="10.112.0.0/12" \
     --set ipam.operator.clusterPoolIPv4MaskSize=24
+
+sudo kubectl create ns kube-platform
+
+sudo helm repo add traefik https://helm.traefik.io/traefik
+
+sudo helm upgrade -i --namespace=kube-platform traefik traefik/traefik \
+    --set=additionalArguments="{--entryPoints.web.proxyProtocol.trustedIPs=10.80.0.0/16,--accesslog=true,--metrics=true,--metrics.prometheus=true}" \
+    --set=ports.web.nodePort=32080 \
+    --set=ports.websecure.nodePort=32443 \
+    --set=service.type=NodePort \
+    --set=ingressClass.enabled=true \
+    --set=ingressClass.isDefaultClass=true
+
 SCRIPT
 
 # `$install_worker_script` is an helper script that joins the control-plane from a worker node.

@@ -15,11 +15,20 @@ Cleanup:
 make clean
 ```
 
+# Forward local ports to cluster Ingress Controller
+
+Traefik is set up as default Ingress Controller.
+It is possible to forward all queries from the host ports 80 and 443 to cluster's Ingress Controller, running the `extra/local-lb.sh` script.
+
+In order for this script to work, you need to have docker installed on your host, as it creates a `vagrant-kubernetes-haproxy` container.
+
 # Components
 
 - Kubernetes 1.20
 - containerd as container runtime (CRI plugin)
 - Cilium as CNI
+
+- Traefik as Ingress Controller
 
 # Networking
 
