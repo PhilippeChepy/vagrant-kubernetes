@@ -41,8 +41,8 @@ In order for this script to work, you need to have docker installed on your host
 * Kubernetes
   * [Website](https://kubernetes.io)
   * [Documentation](https://kubernetes.io/docs/home/)
-* CRI-O
-  * [Website](https://cri-o.io)
+* containerd
+  * [Website](https://containerd.io)
 * Cilium
   * [Website](https://cilium.io)
 * Packer
