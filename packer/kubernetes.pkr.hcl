@@ -3,8 +3,8 @@ source "vagrant" "kubernetes" {
     communicator = "ssh"
     source_path = "ubuntu/focal64"
     provider = "virtualbox"
-    # add_force = true
-    skip_add = true
+    add_force = true
+    # skip_add = true
 }
 
 build {
@@ -75,7 +75,7 @@ build {
             "sudo apt-add-repository \"deb https://apt.kubernetes.io/ kubernetes-xenial main\"",
 
             "sudo apt-get update",
-            "sudo apt-get install -y kubectl=1.20.2-00 kubeadm=1.20.2-00 kubelet=1.20.2-00",
+            "sudo apt-get install -y kubectl=1.20.4-00 kubeadm=1.20.4-00 kubelet=1.20.4-00",
             "sudo apt-mark hold kubelet kubeadm kubectl",
 
             # preload Kubernetes container images
