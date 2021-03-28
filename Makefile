@@ -8,7 +8,7 @@ clean: vagrant.destroy vagrant.clean
 
 .PHONY: packer.build
 packer.build:
-	cd ./packer && (packer build kubernetes.pkr.hcl || true)
+	cd ./packer && packer build kubernetes.pkr.hcl
 
 .PHONY: vagrant.up
 vagrant.up:
