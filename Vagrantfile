@@ -1,6 +1,9 @@
-WORKER_NODES = 2
+WORKER_NODES = 3
 KUBE_IMAGE = "./packer/output-kubernetes/package.box"
-INFLUX_IMAGE = "ubuntu/focal64"
+
+# additional deployments
+storage_volume_snapshost_controller = true
+storage_longhorn = true
 
 # KUBEADM_TOKEN contains a default token, used by worker nodes to join the control plane.
 # The default value provided here is not suitable for production as the content of this 
@@ -100,10 +103,64 @@ Vagrant.configure("2") do |config|
       node.memory = "2048"
       node.cpus = 2
     end
-    
+
     server.vm.provision "shell" do |s|
       s.inline = $install_control_plane_script
       s.args   = [KUBEADM_TOKEN, CONTROL_PLANE_PRIVATE_ADDRESS]
+    end
+
+    if storage_volume_snapshost_controller
+      server.vm.provision "file" do |s|
+        s.source = "kube/manifests/snapshot-controller/rbac.yaml"
+        s.destination = "/tmp/snapshot-controller-rbac.yaml"
+      end
+
+      server.vm.provision "file" do |s|
+        s.source = "kube/manifests/snapshot-controller/deployment.yaml"
+        s.destination = "/tmp/snapshot-controller-deployment.yaml"
+      end
+
+      server.vm.provision "file" do |s|
+        s.source = "kube/manifests/snapshot-crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
+        s.destination = "/tmp/snapshot-crd-snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
+      end
+
+      server.vm.provision "file" do |s|
+        s.source = "kube/manifests/snapshot-crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
+        s.destination = "/tmp/snapshot-crd-snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
+      end
+
+      server.vm.provision "file" do |s|
+        s.source = "kube/manifests/snapshot-crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
+        s.destination = "/tmp/snapshot-crd-snapshot.storage.k8s.io_volumesnapshots.yaml"
+      end
+
+      server.vm.provision "shell" do |s|
+        s.inline = <<-'SCRIPT'
+          sudo kubectl apply -f /tmp/snapshot-controller-rbac.yaml
+          sudo kubectl apply -f /tmp/snapshot-controller-deployment.yaml
+          sudo kubectl apply -f /tmp/snapshot-crd-snapshot.storage.k8s.io_volumesnapshotclasses.yaml
+          sudo kubectl apply -f /tmp/snapshot-crd-snapshot.storage.k8s.io_volumesnapshotcontents.yaml
+          sudo kubectl apply -f /tmp/snapshot-crd-snapshot.storage.k8s.io_volumesnapshots.yaml
+        SCRIPT
+      end
+    
+      if storage_longhorn
+        server.vm.provision "shell", inline: "mkdir -p ~/kube/manifests/longhorn"
+  
+        server.vm.provision "file" do |s|
+          s.source = "kube/manifests/longhorn/volume-snapshot-class.yaml"
+          s.destination = "/tmp/longhorn-volume-snapshot-class.yaml"
+        end
+        
+        server.vm.provision "shell" do |s|
+          s.inline = <<-'SCRIPT'
+            sudo helm repo add longhorn https://charts.longhorn.io
+            sudo helm upgrade -i --namespace=kube-platform longhorn longhorn/longhorn
+            sudo kubectl apply -f /tmp/longhorn-volume-snapshot-class.yaml
+          SCRIPT
+        end
+      end
     end
   end
 

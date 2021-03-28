@@ -29,6 +29,8 @@ In order for this script to work, you need to have docker installed on your host
 - Cilium as CNI
 
 - Traefik as Ingress Controller
+- Longhorn as (optional) volume provisioner
+    To enable longhorn deployment, set `storage_volume_snapshost_controller` and `storage_longhorn` to `true` in Vagrantfile
 
 # Networking
 

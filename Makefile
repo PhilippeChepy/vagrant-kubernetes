@@ -3,7 +3,10 @@
 start: packer.build vagrant.up
 
 .PHONY: clean
-clean: vagrant.destroy vagrant.clean
+clean: vagrant.destroy vagrant.clean packer.clean
+
+.PHONY: packer.clean
+packer.clean:
 	rm -rf packer/output-kubernetes
 
 .PHONY: packer.build

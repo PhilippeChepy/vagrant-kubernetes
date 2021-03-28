@@ -4,7 +4,6 @@ source "vagrant" "kubernetes" {
     source_path = "ubuntu/focal64"
     provider = "virtualbox"
     add_force = true
-    # skip_add = true
 }
 
 build {
@@ -54,6 +53,9 @@ build {
             "sudo mv /tmp/etc_sysctl.d_99-kubernetes-cri.conf /etc/sysctl.d/99-kubernetes-cri.conf",
             "sudo mv /tmp/etc_modules-load.d_containerd.conf /etc/modules-load.d/containerd.conf",
             "sudo mv /tmp/etc_modprobe.d_kubernetes-blacklist.conf /etc/modprobe.d/kubernetes-blacklist.conf",
+
+            # install open-iscsi and nfs-common (used by storage engines)
+            "sudo apt-get install -y open-iscsi nfs-common",
 
             # install containerd (as a replacement for Docker)
             "curl -s https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -",
