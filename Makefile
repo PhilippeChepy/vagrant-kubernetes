@@ -26,5 +26,5 @@ vagrant.destroy:
 	vagrant destroy --force
 
 .PHONY: vagrant.clean
-vagrant.clean:
+vagrant.clean: vagrant.destroy
 	vagrant box remove ./packer/output-kubernetes/package.box
